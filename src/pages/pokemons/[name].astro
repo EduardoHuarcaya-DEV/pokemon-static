@@ -1,0 +1,85 @@
+---
+import type { GetStaticPaths } from "astro";
+import type { PokemonListResponse } from "@interfaces/pokemon-list.response";
+
+import MainLayout from "@layouts/MainLayout.astro";
+import PokemonCard from "@components/Pokemons/PokemonCard.astro";
+
+
+export const getStaticPaths = ( async () => {
+    
+    const resp = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+    const {results} = await resp.json() as PokemonListResponse;
+    console.log(results)
+
+    
+    return results.map(result => ({
+        params: {name: result.name},
+        props: {name: result.name, url: result.url}
+    }))
+    
+    // return [       
+    
+    //     {
+    //         params : {name : 'bulbasaur'}, 
+    //         props: {name: 'bulbasaur', url: 'https://pokeapi.co/api/v2/pokemon/1/'}
+    //     }
+    // ];
+    
+}) satisfies GetStaticPaths;
+
+const { name } = Astro.params;
+const {url} = Astro.props;
+
+//Para el audio
+const id = url.split("/").at(-2)
+const audioSrc = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`
+const ImagenSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`
+
+---
+
+<MainLayout title={`Pokemon - #${id} ${name}`}
+            description={`Información sobre el Pokemon ${name}`}
+            image={ImagenSrc}
+            >
+            
+    <a href="/">Regresar</a>
+    <h1 class="text-3xl capitalize">{name}</h1>
+
+    <PokemonCard 
+        name={name}
+        url={url}
+        isBig
+    />
+    <audio controls class="mt-5">
+        <source src={audioSrc} />
+        Tu navegador no soporta esta etiqueta de audio
+    </audio>
+
+</MainLayout>
+
+
+<style>
+    h1{
+        font-size: 48px;
+        text-align: center;
+    }
+    a{
+        color: rgb(16, 101, 180);    
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        align-items: center;
+
+    }
+    a:hover{
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    audio{
+        margin: 0 auto;
+    }
+</style>
+
+

@@ -1,0 +1,70 @@
+---
+import type { GetStaticPaths } from "astro";
+import type { PokemonListResponse } from "@interfaces/pokemon-list.response";
+
+import MainLayout from "@layouts/MainLayout.astro";
+import PokemonCard from "@components/Pokemons/PokemonCard.astro";
+
+export const getStaticPaths = ( async () => {
+    
+    const resp = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+    const {results} = await resp.json() as PokemonListResponse;
+
+    return results.map((result) => {
+
+        const id = result.url.split("/").at(-2);
+
+        return {
+            params: {id : id},
+            props: {name: result.name, url: result.url}
+        };
+    });
+}) satisfies GetStaticPaths;
+
+const {name, url} = Astro.props;
+const {id} = Astro.params;
+
+const audioSrc = `https://raw.githubusercontent.com/PokeAPI/cries/main/cries/pokemon/latest/${id}.ogg`
+---
+
+
+
+<MainLayout title=`Pokemon ${name}`>
+    <a href="/">Regresar</a>
+    <h1 class="text-3xl capitalize">{name}</h1>
+
+    <PokemonCard 
+        name={name}
+        url={url}
+        isBig
+    />
+    <audio controls class="mt-5">
+        <source src={audioSrc} />
+        Tu navegador no soporta esta etiqueta de audio
+    </audio>
+
+</MainLayout>
+
+
+<style>
+    h1{
+        font-size: 48px;
+        text-align: center;
+    }
+    a{
+        color: rgb(16, 101, 180);    
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        align-items: center;
+
+    }
+    a:hover{
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    audio{
+        margin: 0 auto;
+    }
+</style>
